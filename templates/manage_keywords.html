@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}Threat Feeds | PhishGuard{% endblock %}
+
+{% block content %}
+<div class="card card-soft">
+    <div class="card-body p-4">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <div>
+                <h1 class="h4 fw-bold mb-1">Automatic Phishing URL Feed Updates</h1>
+                <p class="text-muted mb-0">The app refreshes phishing URLs automatically and uses them during scan classification.</p>
+            </div>
+            <form method="POST">
+                <button type="submit" class="btn btn-primary">Sync Now</button>
+            </form>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="p-3 rounded bg-light border">
+                    <div class="text-muted small text-uppercase">Tracked URLs</div>
+                    <div class="fs-4 fw-bold">{{ feed_status.total_urls }}</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-3 rounded bg-light border">
+                    <div class="text-muted small text-uppercase">Last Attempt</div>
+                    <div class="small fw-semibold">{{ feed_status.last_attempt }}</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-3 rounded bg-light border">
+                    <div class="text-muted small text-uppercase">Last Success</div>
+                    <div class="small fw-semibold">{{ feed_status.last_success }}</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-3 rounded bg-light border">
+                    <div class="text-muted small text-uppercase">Refresh Interval</div>
+                    <div class="fs-4 fw-bold">{{ feed_status.refresh_minutes }} min</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <h2 class="h6 fw-bold">Feed Sources</h2>
+            <ul class="mb-0">
+                {% for source in feed_status.remote_sources %}
+                    <li><code>{{ source }}</code></li>
+                {% else %}
+                    <li>No remote sources configured.</li>
+                {% endfor %}
+            </ul>
+            <div class="small text-muted mt-2">Local snapshot: <code>{{ feed_status.snapshot_path }}</code></div>
+        </div>
+
+        {% if feed_status.last_error %}
+            <div class="alert alert-warning">
+                Latest sync warning:<br>
+                <span class="small">{{ feed_status.last_error }}</span>
+            </div>
+        {% endif %}
+
+        <h2 class="h6 fw-bold">Recently Seen Feed URLs</h2>
+        {% if recent_urls %}
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>URL</th>
+                            <th>Source</th>
+                            <th>Last Seen</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in recent_urls %}
+                            <tr>
+                                <td style="word-break: break-all;"><code>{{ entry.normalized_url }}</code></td>
+                                <td>{{ entry.source }}</td>
+                                <td>{{ entry.last_seen.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-muted mb-0">No phishing URLs have been loaded yet.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

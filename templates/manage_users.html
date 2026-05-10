@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Users | PhishGuard{% endblock %}
+
+{% block content %}
+<div class="card card-soft">
+    <div class="card-body p-4 p-lg-5">
+        <div class="section-header">
+            <div>
+                <h1 class="h3">Access Control Console</h1>
+                <p>Create internal accounts, review access requests, and approve or reject applicants as an administrator.</p>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-xl-4">
+                <div class="metric-card h-100">
+                    <div class="section-header mb-3">
+                        <div>
+                            <h2 class="h5">Create Approved User</h2>
+                            <p class="mb-0">Use this for staff accounts created directly by the admin team.</p>
+                        </div>
+                    </div>
+                    <div class="alert alert-info py-2 small">
+                        Accounts are locked after {{ max_login_attempts }} failed password attempts. Use the reset action to unlock them.
+                    </div>
+                    <form method="POST" class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label">Full Name</label>
+                            <input type="text" name="full_name" class="form-control" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Work Email</label>
+                            <input type="email" name="email" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Organization</label>
+                            <input type="text" name="organization" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Department</label>
+                            <input type="text" name="department" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Job Title</label>
+                            <input type="text" name="job_title" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Username</label>
+                            <input type="text" name="username" class="form-control" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Password</label>
+                            <input type="password" name="password" class="form-control" required>
+                            <div class="form-text">Use at least 10 characters with uppercase, lowercase, number, and special character.</div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="is_admin" id="isAdmin">
+                                <label class="form-check-label" for="isAdmin">Grant administrator privileges</label>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary w-100">Create User</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="col-xl-8">
+                <div class="metric-card">
+                    <div class="section-header mb-3">
+                        <div>
+                            <h2 class="h5">Applicant and User Directory</h2>
+                            <p class="mb-0">Pending, approved, and rejected users are all tracked here for audit visibility.</p>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table align-middle">
+                            <thead>
+                                <tr>
+                                    <th>User</th>
+                                    <th>Business Profile</th>
+                                    <th>Status</th>
+                                    <th>Role</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in users %}
+                                    <tr>
+                                        <td>
+                                            <div class="fw-semibold">{{ user.full_name or user.username }}</div>
+                                            <div class="text-muted small">{{ user.username }}</div>
+                                            <div class="text-muted small">{{ user.email or 'No email saved' }}</div>
+                                        </td>
+                                        <td>
+                                            <div class="fw-semibold">{{ user.organization or 'Not provided' }}</div>
+                                            <div class="text-muted small">{{ user.department or 'Department not set' }}</div>
+                                            <div class="text-muted small">{{ user.job_title or 'Title not set' }}</div>
+                                        </td>
+                                        <td>
+                                            {% if user.is_rejected %}
+                                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Rejected</span>
+                                            {% elif user.is_approved %}
+                                                <span class="badge bg-success-subtle text-success border border-success-subtle">Approved</span>
+                                            {% else %}
+                                                <span class="badge bg-warning-subtle text-warning border border-warning-subtle">Pending</span>
+                                            {% endif %}
+                                            {% if user.is_locked %}
+                                                <span class="badge bg-dark ms-1">Locked</span>
+                                            {% endif %}
+                                            {% if user.decision_note %}
+                                                <div class="small text-muted mt-2">{{ user.decision_note }}</div>
+                                            {% endif %}
+                                            <div class="small text-muted mt-2">
+                                                Failed logins: {{ user.failed_login_attempts }} / {{ max_login_attempts }}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="badge {{ 'bg-dark' if user.is_admin else 'bg-secondary' }}">
+                                                {{ 'Admin' if user.is_admin else 'User' }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex flex-wrap gap-2">
+                                                {% if not user.is_approved %}
+                                                    <a href="{{ url_for('approve_user', user_id=user.id) }}" class="btn btn-sm btn-success">Approve</a>
+                                                {% endif %}
+                                                {% if not user.is_rejected %}
+                                                    <a href="{{ url_for('reject_user', user_id=user.id) }}" class="btn btn-sm btn-outline-danger">Reject</a>
+                                                {% endif %}
+                                                {% if user.id != current_user.id %}
+                                                    <a href="{{ url_for('admin_reset_password', user_id=user.id) }}" class="btn btn-sm btn-outline-primary">Reset Password</a>
+                                                    <a href="{{ url_for('delete_user', user_id=user.id) }}" class="btn btn-sm btn-outline-secondary" onclick="return confirm('Archive this user and free their old sign-up details for reuse?');">Archive</a>
+                                                {% else %}
+                                                    <span class="badge bg-light text-dark border">Current account</span>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% else %}
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted py-4">No users are available yet.</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

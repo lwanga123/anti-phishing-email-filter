@@ -1,0 +1,17 @@
+venv/
+spamassassin/
+data/
+__pycache__/
+*.pyc
+instance/
+.vscode/
+.git_corrupt_backup_*/
+.git_repair_tmp/
+*.pkl
+cleaned_data.csv
+openphish_feed.txt
+feedback.csv
+feedback_pending.csv
+quarantine.json
+stats.json
+files.zip

@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Users | PhishGuard{% endblock %}
+
+{% block content %}
+<div class="card card-soft">
+    <div class="card-body p-4">
+        <h1 class="h4 fw-bold mb-2">User Administration</h1>
+        <p class="text-muted mb-3">User approval and deletion are handled from the main user-management screen.</p>
+        <a href="{{ url_for('manage_users') }}" class="btn btn-primary">Open Manage Users</a>
+    </div>
+</div>
+{% endblock %}

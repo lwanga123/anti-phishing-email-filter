@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}PhishGuard{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --drawer-width: 292px;
+            --bg: #eef3f7;
+            --surface: #ffffff;
+            --surface-soft: #f8fbfd;
+            --border: #d7e2ea;
+            --ink: #102436;
+            --muted: #6d8091;
+            --accent: #0c7a6a;
+            --accent-dark: #0b6659;
+            --danger: #c0392b;
+            --warning: #d78f0c;
+            --navy: #0f2233;
+            --navy-soft: #183249;
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            background:
+                radial-gradient(circle at top right, rgba(12, 122, 106, 0.12), transparent 22rem),
+                linear-gradient(180deg, #f4f8fb 0%, var(--bg) 100%);
+            color: var(--ink);
+            font-family: "Segoe UI", system-ui, sans-serif;
+        }
+
+        .app-shell {
+            min-height: 100vh;
+            display: flex;
+        }
+
+        .app-drawer {
+            width: var(--drawer-width);
+            background: linear-gradient(180deg, var(--navy) 0%, #122a3d 100%);
+            color: #f4f8fb;
+            padding: 1.2rem 1rem 1rem;
+            position: fixed;
+            inset: 0 auto 0 0;
+            overflow-y: auto;
+            z-index: 1040;
+            border-right: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .drawer-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.9rem;
+            padding: 0.65rem 0.75rem 1.1rem;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            margin-bottom: 1rem;
+        }
+
+        .brand-badge {
+            width: 46px;
+            height: 46px;
+            border-radius: 14px;
+            display: grid;
+            place-items: center;
+            background: linear-gradient(135deg, #0d9488, #155e75);
+            box-shadow: 0 12px 26px rgba(6, 40, 57, 0.35);
+            font-size: 1.2rem;
+        }
+
+        .brand-title { font-weight: 700; letter-spacing: -0.02em; font-size: 1.08rem; }
+        .brand-subtitle { color: rgba(255,255,255,0.64); font-size: 0.82rem; }
+
+        .drawer-section {
+            margin-top: 1.2rem;
+        }
+
+        .drawer-label {
+            color: rgba(255,255,255,0.48);
+            font-size: 0.73rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            margin: 0 0 0.55rem 0.75rem;
+            font-weight: 700;
+        }
+
+        .drawer-link {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.9rem;
+            color: rgba(255,255,255,0.82);
+            text-decoration: none;
+            padding: 0.8rem 0.95rem;
+            border-radius: 14px;
+            margin-bottom: 0.35rem;
+            transition: 0.2s ease;
+        }
+
+        .drawer-link:hover, .drawer-link.active {
+            background: rgba(255,255,255,0.09);
+            color: #fff;
+            transform: translateX(2px);
+        }
+
+        .drawer-link span {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            min-width: 0;
+        }
+
+        .drawer-link i {
+            width: 1.15rem;
+            text-align: center;
+        }
+
+        .drawer-pill {
+            min-width: 1.7rem;
+            height: 1.7rem;
+            border-radius: 999px;
+            display: inline-grid;
+            place-items: center;
+            padding: 0 0.45rem;
+            background: rgba(255,255,255,0.12);
+            color: #fff;
+            font-size: 0.72rem;
+            font-weight: 700;
+        }
+
+        .drawer-user {
+            margin-top: 1.2rem;
+            border-radius: 18px;
+            padding: 1rem;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .drawer-user .user-name { font-weight: 700; }
+        .drawer-user .user-meta { color: rgba(255,255,255,0.62); font-size: 0.84rem; }
+
+        .app-main {
+            margin-left: var(--drawer-width);
+            min-height: 100vh;
+            width: calc(100% - var(--drawer-width));
+            padding: 1.2rem 1.2rem 2rem;
+        }
+
+        .topbar {
+            background: rgba(255,255,255,0.72);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(215, 226, 234, 0.9);
+            border-radius: 22px;
+            padding: 0.95rem 1.05rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            box-shadow: 0 8px 24px rgba(16, 36, 54, 0.05);
+            margin-bottom: 1.15rem;
+        }
+
+        .topbar h1 {
+            font-size: 1.1rem;
+            margin: 0;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .topbar p {
+            margin: 0.1rem 0 0;
+            color: var(--muted);
+            font-size: 0.88rem;
+        }
+
+        .topbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+        }
+
+        .status-chip {
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            padding: 0.55rem 0.8rem;
+            font-size: 0.84rem;
+            color: var(--muted);
+        }
+
+        .page-shell {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .card-soft {
+            background: rgba(255,255,255,0.9);
+            border: 1px solid rgba(215, 226, 234, 0.95);
+            border-radius: 22px;
+            box-shadow: 0 16px 40px rgba(16, 36, 54, 0.06);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .section-header h2,
+        .section-header h1 {
+            margin: 0;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+        }
+
+        .section-header p {
+            margin: 0.28rem 0 0;
+            color: var(--muted);
+        }
+
+        .metric-card {
+            border-radius: 18px;
+            background: linear-gradient(180deg, var(--surface) 0%, var(--surface-soft) 100%);
+            border: 1px solid var(--border);
+            padding: 1rem;
+        }
+
+        .metric-label {
+            text-transform: uppercase;
+            font-size: 0.73rem;
+            letter-spacing: 0.08em;
+            color: var(--muted);
+            font-weight: 700;
+        }
+
+        .metric-value {
+            font-size: 1.85rem;
+            font-weight: 800;
+            letter-spacing: -0.04em;
+            margin-top: 0.2rem;
+        }
+
+        .table {
+            --bs-table-bg: transparent;
+            --bs-table-border-color: var(--border);
+            margin-bottom: 0;
+        }
+
+        .table thead th {
+            color: var(--muted);
+            font-size: 0.77rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            border-bottom-width: 1px;
+            font-weight: 700;
+        }
+
+        .table td, .table th {
+            vertical-align: middle;
+            padding-top: 0.95rem;
+            padding-bottom: 0.95rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), #16856b);
+            border: none;
+            border-radius: 14px;
+            padding-inline: 1rem;
+            box-shadow: 0 12px 24px rgba(12, 122, 106, 0.18);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--accent-dark), #137560);
+        }
+
+        .btn-outline-secondary,
+        .btn-outline-primary,
+        .btn-outline-danger,
+        .btn-success,
+        .btn-secondary {
+            border-radius: 14px;
+        }
+
+        .alert {
+            border-radius: 16px;
+            border: 1px solid transparent;
+        }
+
+        .drawer-toggle {
+            display: none;
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            background: #fff;
+            color: var(--ink);
+        }
+
+        .drawer-backdrop {
+            display: none;
+        }
+
+        @media (max-width: 991.98px) {
+            .app-drawer {
+                transform: translateX(-105%);
+                transition: transform 0.25s ease;
+            }
+
+            body.drawer-open .app-drawer {
+                transform: translateX(0);
+            }
+
+            .drawer-backdrop {
+                position: fixed;
+                inset: 0;
+                background: rgba(6, 20, 31, 0.48);
+                z-index: 1035;
+            }
+
+            body.drawer-open .drawer-backdrop {
+                display: block;
+            }
+
+            .app-main {
+                width: 100%;
+                margin-left: 0;
+                padding: 0.9rem 0.9rem 1.4rem;
+            }
+
+            .drawer-toggle {
+                display: inline-grid;
+                place-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="drawer-backdrop" onclick="document.body.classList.remove('drawer-open')"></div>
+    <div class="app-shell">
+        <aside class="app-drawer" id="appDrawer">
+            <div class="drawer-brand">
+                <div class="brand-badge"><i class="fas fa-shield-virus"></i></div>
+                <div>
+                    <div class="brand-title">PhishGuard</div>
+                    <div class="brand-subtitle">Anti-Phishing Security Console</div>
+                </div>
+            </div>
+
+            <div class="drawer-section">
+                <div class="drawer-label">Workspace</div>
+                <a href="{{ url_for('home') }}" class="drawer-link">
+                    <span><i class="fas fa-house"></i>Dashboard</span>
+                </a>
+            </div>
+
+            {% if current_user.is_authenticated %}
+                <div class="drawer-section">
+                    <div class="drawer-label">User Operations</div>
+                    <a href="{{ url_for('check_email') }}" class="drawer-link">
+                        <span><i class="fas fa-envelope-open-text"></i>Check Email</span>
+                    </a>
+                    <a href="{{ url_for('sandbox_history') }}" class="drawer-link">
+                        <span><i class="fas fa-clock-rotate-left"></i>My History</span>
+                    </a>
+                    <a href="{{ url_for('notifications') }}" class="drawer-link">
+                        <span><i class="fas fa-bell"></i>Notifications</span>
+                        {% if unread_notification_count %}
+                            <span class="drawer-pill">{{ unread_notification_count }}</span>
+                        {% endif %}
+                    </a>
+                </div>
+
+                {% if current_user.is_admin %}
+                    <div class="drawer-section">
+                        <div class="drawer-label">Admin Operations</div>
+                        <a href="{{ url_for('quarantine') }}" class="drawer-link">
+                            <span><i class="fas fa-shield-heart"></i>Quarantine</span>
+                        </a>
+                        <a href="{{ url_for('live_monitor') }}" class="drawer-link">
+                            <span><i class="fas fa-wave-square"></i>Live Monitor</span>
+                        </a>
+                        <a href="{{ url_for('manage_keywords') }}" class="drawer-link">
+                            <span><i class="fas fa-link-slash"></i>Threat Feeds</span>
+                        </a>
+                        <a href="{{ url_for('trusted_datasets') }}" class="drawer-link">
+                            <span><i class="fas fa-database"></i>Trusted Datasets</span>
+                        </a>
+                        <a href="{{ url_for('reports') }}" class="drawer-link">
+                            <span><i class="fas fa-chart-column"></i>Reports</span>
+                        </a>
+                        <a href="{{ url_for('review_feedback') }}" class="drawer-link">
+                            <span><i class="fas fa-clipboard-check"></i>Review Feedback</span>
+                        </a>
+                        <a href="{{ url_for('manage_users') }}" class="drawer-link">
+                            <span><i class="fas fa-users-gear"></i>Manage Users</span>
+                        </a>
+                    </div>
+                {% endif %}
+
+                <div class="drawer-section">
+                    <div class="drawer-label">Account</div>
+                    <div class="drawer-user">
+                        <div class="user-name">{{ current_user.full_name or current_user.username }}</div>
+                        <div class="user-meta">{{ current_user.job_title or 'Platform User' }}</div>
+                        <div class="user-meta">{{ current_user.organization or 'Local Business Workspace' }}</div>
+                    </div>
+                    <a href="{{ url_for('change_password') }}" class="drawer-link mt-2">
+                        <span><i class="fas fa-key"></i>Change Password</span>
+                    </a>
+                    <a href="{{ url_for('logout') }}" class="drawer-link mt-2">
+                        <span><i class="fas fa-arrow-right-from-bracket"></i>Logout</span>
+                    </a>
+                </div>
+            {% else %}
+                <div class="drawer-section">
+                    <div class="drawer-label">Access</div>
+                    <a href="{{ url_for('login') }}" class="drawer-link">
+                        <span><i class="fas fa-right-to-bracket"></i>Login</span>
+                    </a>
+                    <a href="{{ url_for('register') }}" class="drawer-link">
+                        <span><i class="fas fa-user-plus"></i>Request Access</span>
+                    </a>
+                </div>
+            {% endif %}
+        </aside>
+
+        <main class="app-main">
+            <header class="topbar">
+                <div class="d-flex align-items-center gap-3">
+                    <button class="drawer-toggle" type="button" onclick="document.body.classList.toggle('drawer-open')">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div>
+                        <h1>PhishGuard Security Workspace</h1>
+                        <p>Operations are separated for regular users and administrators in the drawer.</p>
+                    </div>
+                </div>
+                <div class="topbar-actions">
+                    {% if current_user.is_authenticated %}
+                        <div class="status-chip">
+                            <i class="fas fa-user-shield me-2"></i>{{ current_user.department or 'Security Operations' }}
+                        </div>
+                        <a href="{{ url_for('notifications') }}" class="status-chip text-decoration-none">
+                            <i class="fas fa-bell me-2"></i>{{ unread_notification_count }} unread
+                        </a>
+                    {% else %}
+                        <div class="status-chip">
+                            <i class="fas fa-circle-info me-2"></i>Guest Session
+                        </div>
+                    {% endif %}
+                </div>
+            </header>
+
+            <div class="page-shell">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category if category != 'message' else 'info' }} alert-dismissible fade show mb-0" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}Safe Preview | PhishGuard{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-xl-10">
+        <div class="card card-soft">
+            <div class="card-body p-4 p-lg-5">
+                <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+                    <div>
+                        <h1 class="h3 fw-bold mb-2">Safe Preview</h1>
+                        <p class="text-muted mb-0">Scripts and links are neutralized before rendering.</p>
+                    </div>
+                    <span class="badge bg-secondary">Scan {{ scan.id[:8] }}</span>
+                </div>
+
+                <div class="row g-3 mt-3">
+                    <div class="col-md-4">
+                        <div class="p-3 rounded bg-light border">
+                            <div class="text-muted small text-uppercase">From</div>
+                            <div class="fw-semibold">{{ scan.sender }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 rounded bg-light border">
+                            <div class="text-muted small text-uppercase">Subject</div>
+                            <div class="fw-semibold">{{ scan.subject }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 rounded bg-light border">
+                            <div class="text-muted small text-uppercase">Verdict</div>
+                            <div class="fw-semibold">{{ scan.result }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert alert-warning mt-4 mb-0">
+                    Active links have been disabled. This preview is for inspection only.
+                </div>
+
+                <div class="row g-3 mt-3">
+                    <div class="col-md-3">
+                        <div class="p-3 rounded bg-light border">
+                            <div class="text-muted small text-uppercase">Disabled URLs</div>
+                            <div class="fw-semibold">{{ sandbox_report.url_count }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-3 rounded bg-light border">
+                            <div class="text-muted small text-uppercase">Scripts Blocked</div>
+                            <div class="fw-semibold">{{ sandbox_report.script_blocks }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-3 rounded bg-light border">
+                            <div class="text-muted small text-uppercase">Forms Found</div>
+                            <div class="fw-semibold">{{ sandbox_report.forms }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-3 rounded bg-light border">
+                            <div class="text-muted small text-uppercase">Items Neutralized</div>
+                            <div class="fw-semibold">{{ sandbox_report.blocked_items }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                {% if sandbox_report.urls %}
+                    <div class="mt-4 p-3 rounded border bg-light">
+                        <div class="fw-semibold mb-2">Extracted URLs</div>
+                        <div class="d-grid gap-2">
+                            {% for url in sandbox_report.urls %}
+                                <div class="small text-muted" style="word-break: break-all;">{{ url }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+
+                <div class="mt-4 p-3 rounded border bg-light">
+                    <div class="fw-semibold mb-2">NLP Signals</div>
+                    <div class="small text-muted mb-2">
+                        {{ nlp_analysis.feature_method }} found {{ nlp_analysis.token_count }} token(s), with
+                        {{ nlp_analysis.matched_terms|length }} suspicious term match(es).
+                    </div>
+                    {% if nlp_analysis.matched_terms %}
+                        <div class="d-flex flex-wrap gap-2">
+                            {% for term in nlp_analysis.matched_terms %}
+                                <span class="badge bg-warning text-dark">{{ term }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="small text-muted">No strong suspicious NLP terms were found.</div>
+                    {% endif %}
+                </div>
+
+                <div class="mt-4 p-4 border rounded bg-white" style="white-space: pre-wrap; font-family: 'Courier New', monospace;">{{ sanitized_body }}</div>
+
+                <div class="d-flex flex-wrap gap-2 mt-4">
+                    <a href="{{ url_for('sandbox_results', scan_id=scan.id) }}" class="btn btn-secondary">Back to Result</a>
+                    <a href="{{ url_for('sandbox_history') }}" class="btn btn-outline-secondary">My History</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

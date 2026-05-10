@@ -1,0 +1,10 @@
+flask
+flask-login
+flask-sqlalchemy
+werkzeug
+joblib
+pandas
+scikit-learn
+nltk
+aiosmtpd
+requests

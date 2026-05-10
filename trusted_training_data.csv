@@ -1,0 +1,9 @@
+text,label,language,source,verified_at
+"Team meeting agenda for tomorrow at 10 AM in the main boardroom",0,english,verified-demo,2026-05-07
+"Your Apple ID has been locked for security reasons. Verify now to regain access.",1,english,openphish.com,2026-05-07
+text,label,language,source,verified_at
+"Here's the invoice #INV-2045 you requested. Please let me know if you have questions.",0,english,verified-demo,2026-05-07
+"Your LastPass vault requires immediate backup before scheduled maintenance in 24 hours.",1,english,blog.lastpass.com,2026-05-07
+text,label,language,source,verified_at
+"Please review the attached contract document for our upcoming service agreement.",0,english,verified-demo,2026-05-07
+"New Scanned Fax Received from Xerox WorkCentre",1,english,techhelp.towson.edu,2026-05-07

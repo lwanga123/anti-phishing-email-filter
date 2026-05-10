@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Check Email | PhishGuard{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-xl-8">
+        <div class="card card-soft">
+            <div class="card-body p-4 p-lg-5">
+                <div class="section-header">
+                    <div>
+                        <h1 class="h3">Manual Email Check</h1>
+                        <p class="mb-0">Paste the suspicious email below. PhishGuard will check its content, links, and stored threat intelligence.</p>
+                    </div>
+                </div>
+
+                {% if not ml_ready %}
+                    <div class="alert alert-warning">
+                        The machine-learning model is not loaded right now. Your submission will still be saved, but it will require manual review.
+                        {% if ml_error %}<div class="small mt-2"><strong>Reason:</strong> {{ ml_error }}</div>{% endif %}
+                    </div>
+                {% endif %}
+
+                <form method="POST">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Email Content</label>
+                        <textarea name="email_text" class="form-control" rows="15" placeholder="Paste the email body, headers, or suspicious message here..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Scan for Phishing</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-4">
+        <div class="metric-card h-100">
+            <div class="section-header mb-3">
+                <div>
+                    <h2 class="h5 mb-1">What to look for</h2>
+                    <p class="mb-0">A beginner-friendly guide to suspicious signs.</p>
+                </div>
+            </div>
+            <ul class="mb-4">
+                <li>Urgent requests to verify accounts or passwords</li>
+                <li>Links that do not match the company you trust</li>
+                <li>Unexpected payment or invoice messages</li>
+                <li>Spelling mistakes or strange sender names</li>
+            </ul>
+            <div class="alert alert-info mb-0">
+                Cybersecurity tip: if an email asks for credentials, payment, or urgent action, treat it as suspicious until verified.
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

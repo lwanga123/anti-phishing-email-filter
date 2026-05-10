@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Notifications | PhishGuard{% endblock %}
+
+{% block content %}
+<div class="card card-soft">
+    <div class="card-body p-4 p-lg-5">
+        <div class="section-header">
+            <div>
+                <h1 class="h3">Notification Center</h1>
+                <p>Security events, approval updates, and account messages are stored here inside the app.</p>
+            </div>
+            <form method="POST" action="{{ url_for('mark_all_notifications_read') }}">
+                <button type="submit" class="btn btn-outline-secondary">Mark All Read</button>
+            </form>
+        </div>
+
+        {% if notifications %}
+            <div class="d-grid gap-3">
+                {% for notification in notifications %}
+                    <div class="metric-card">
+                        <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+                            <div>
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <span class="badge {% if notification.category == 'danger' %}bg-danger{% elif notification.category == 'warning' %}bg-warning text-dark{% elif notification.category == 'success' %}bg-success{% else %}bg-secondary{% endif %}">
+                                        {{ notification.category|title }}
+                                    </span>
+                                    {% if not notification.is_read %}
+                                        <span class="badge bg-dark">Unread</span>
+                                    {% endif %}
+                                </div>
+                                <h2 class="h5 mb-1">{{ notification.title }}</h2>
+                                <p class="text-muted mb-0">{{ notification.message }}</p>
+                            </div>
+                            <div class="text-md-end">
+                                <div class="small text-muted">{{ notification.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</div>
+                                {% if notification.link %}
+                                    <a href="{{ url_for('open_notification', notification_id=notification.id) }}" class="btn btn-sm btn-outline-primary mt-2">Open</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-muted mb-0">No notifications yet. Approval requests and admin actions will appear here.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

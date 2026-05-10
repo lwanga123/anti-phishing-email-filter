@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Quarantine | PhishGuard{% endblock %}
+
+{% block content %}
+<div class="card card-soft">
+    <div class="card-body p-4">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <div>
+                <h1 class="h3 fw-bold mb-1">Threat Quarantine</h1>
+                <p class="text-muted mb-0">Messages classified as phishing stay here until an administrator releases or removes them.</p>
+            </div>
+            <span class="badge bg-danger">{{ items|length }} quarantined</span>
+        </div>
+
+        {% if items %}
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Sender</th>
+                            <th>Subject</th>
+                            <th>Score</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in items %}
+                            <tr>
+                                <td>{{ item.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>{{ item.sender }}</td>
+                                <td>{{ item.subject }}</td>
+                                <td>{{ item.score }}%</td>
+                                <td class="d-flex flex-wrap gap-2">
+                                    <a href="{{ url_for('safe_preview', scan_id=item.id) }}" class="btn btn-sm btn-outline-primary">Preview</a>
+                                    <a href="{{ url_for('release', scan_id=item.id) }}" class="btn btn-sm btn-success">Release</a>
+                                    <a href="{{ url_for('delete_threat', scan_id=item.id) }}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this threat record?');">Delete</a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-muted mb-0">No quarantined messages right now.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

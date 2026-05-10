@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block title %}Trusted Datasets | PhishGuard{% endblock %}
+
+{% block content %}
+<div class="card card-soft">
+    <div class="card-body p-4 p-lg-5">
+        <div class="section-header">
+            <div>
+                <h1 class="h3">Trusted Dataset Review</h1>
+                <p>Import verified samples from trusted sources, approve useful rows, and feed only approved data into model retraining.</p>
+            </div>
+            <form method="POST">
+                <input type="hidden" name="action" value="sync">
+                <button type="submit" class="btn btn-primary">Sync Trusted Data</button>
+            </form>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="metric-label">Pending</div>
+                    <div class="metric-value">{{ trusted_dataset_status.pending }}</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="metric-label">Approved</div>
+                    <div class="metric-value">{{ trusted_dataset_status.approved }}</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="metric-label">Rejected</div>
+                    <div class="metric-value">{{ trusted_dataset_status.rejected }}</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="metric-label">Used</div>
+                    <div class="metric-value">{{ trusted_dataset_status.used }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="alert alert-info">
+            Local path: {{ trusted_dataset_status.local_path }} |
+            Refresh: every {{ trusted_dataset_status.refresh_hours }} hour(s) |
+            Auto approve: {{ 'On' if trusted_dataset_status.auto_approve else 'Off' }}
+        </div>
+        {% if trusted_dataset_status.last_error %}
+            <div class="alert alert-warning">
+                Latest import warnings:<br>
+                <span class="small">{{ trusted_dataset_status.last_error }}</span>
+            </div>
+        {% endif %}
+
+        <h2 class="h5 fw-bold mt-4 mb-3">Pending Samples</h2>
+        {% if pending_entries %}
+            <form method="POST">
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Source</th>
+                                <th>Label</th>
+                                <th>Language</th>
+                                <th>Text</th>
+                                <th class="text-center">Approve</th>
+                                <th class="text-center">Reject</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for entry in pending_entries %}
+                                <tr>
+                                    <td>
+                                        <div class="fw-semibold">{{ entry.source }}</div>
+                                        <div class="text-muted small">{{ entry.imported_at.strftime('%Y-%m-%d %H:%M') }}</div>
+                                    </td>
+                                    <td>
+                                        <span class="badge {{ 'bg-danger' if entry.label == 1 else 'bg-success' }}">
+                                            {{ 'Phishing' if entry.label == 1 else 'Safe' }}
+                                        </span>
+                                    </td>
+                                    <td>{{ entry.language or 'unknown' }}</td>
+                                    <td>
+                                        <div class="small text-muted" style="white-space: pre-wrap;">{{ entry.text[:260] }}{% if entry.text|length > 260 %}...{% endif %}</div>
+                                    </td>
+                                    <td class="text-center">
+                                        <input type="checkbox" name="approve" value="{{ entry.id }}" class="form-check-input approve-cb">
+                                    </td>
+                                    <td class="text-center">
+                                        <input type="checkbox" name="reject" value="{{ entry.id }}" class="form-check-input reject-cb">
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <button type="submit" class="btn btn-primary mt-3">Process Selected Samples</button>
+            </form>
+        {% else %}
+            <p class="text-muted mb-0">No trusted dataset samples are waiting for review.</p>
+        {% endif %}
+
+        <h2 class="h5 fw-bold mt-5 mb-3">Recent Imported Samples</h2>
+        {% if recent_entries %}
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead>
+                        <tr>
+                            <th>Source</th>
+                            <th>Status</th>
+                            <th>Label</th>
+                            <th>Text</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in recent_entries %}
+                            <tr>
+                                <td>{{ entry.source }}</td>
+                                <td>
+                                    <span class="badge {% if entry.status == 'approved' %}bg-success{% elif entry.status == 'rejected' %}bg-danger{% else %}bg-warning text-dark{% endif %}">
+                                        {{ entry.status|title }}
+                                    </span>
+                                </td>
+                                <td>{{ 'Phishing' if entry.label == 1 else 'Safe' }}</td>
+                                <td><span class="small text-muted">{{ entry.text[:180] }}{% if entry.text|length > 180 %}...{% endif %}</span></td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-muted mb-0">No trusted samples have been imported yet.</p>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    document.querySelectorAll('.approve-cb').forEach(function (checkbox) {
+        checkbox.addEventListener('change', function () {
+            if (this.checked) {
+                const peer = this.closest('tr').querySelector('.reject-cb');
+                if (peer) peer.checked = false;
+            }
+        });
+    });
+    document.querySelectorAll('.reject-cb').forEach(function (checkbox) {
+        checkbox.addEventListener('change', function () {
+            if (this.checked) {
+                const peer = this.closest('tr').querySelector('.approve-cb');
+                if (peer) peer.checked = false;
+            }
+        });
+    });
+</script>
+{% endblock %}

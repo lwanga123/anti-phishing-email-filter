@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}Review Feedback | PhishGuard{% endblock %}
+
+{% block content %}
+<div class="card card-soft">
+    <div class="card-body p-4">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <div>
+                <h1 class="h3 fw-bold mb-1">Review Feedback Queue</h1>
+                <p class="text-muted mb-0">Approve when the AI was correct. Reject when the actual label should be the opposite.</p>
+            </div>
+            <a href="{{ url_for('retrain_now') }}" class="btn btn-outline-primary">Retrain Model</a>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="metric-card">
+                    <div class="metric-label">User-Flagged Queue</div>
+                    <div class="metric-value">{{ queued_scans|length }}</div>
+                    <div class="text-muted small">Scans a user explicitly marked for review.</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="metric-card">
+                    <div class="metric-label">Unreviewed Inbox</div>
+                    <div class="metric-value">{{ unreviewed_scans|length }}</div>
+                    <div class="text-muted small">Scans waiting for admin triage even without user feedback.</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="metric-card">
+                    <div class="metric-label">Auto Retrain Queue</div>
+                    <div class="metric-value">{{ auto_retrain_status.pending_count }}</div>
+                    <div class="text-muted small">{{ auto_retrain_status.last_message }}</div>
+                </div>
+            </div>
+        </div>
+
+        {% if scans %}
+            <form method="POST">
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Sender</th>
+                                <th>Subject</th>
+                                <th>Prediction</th>
+                                <th>User Feedback</th>
+                                <th class="text-center">Approve</th>
+                                <th class="text-center">Reject</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for scan in scans %}
+                                <tr>
+                                    <td>{{ scan.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
+                                    <td>{{ scan.sender }}</td>
+                                    <td>{{ scan.subject }}</td>
+                                    <td>
+                                        <span class="badge {{ 'bg-danger' if scan.result == 'Phishing' else 'bg-success' if scan.result == 'Safe' else 'bg-warning text-dark' }}">
+                                            {{ scan.result }}
+                                        </span>
+                                        <div class="small text-muted">{{ scan.score }}% confidence | {{ scan.review_status }}</div>
+                                    </td>
+                                    <td>
+                                        {% if scan.feedback_value == 'wrong' %}
+                                            <span class="badge bg-danger">User marked this as wrong</span>
+                                        {% elif scan.feedback_value == 'correct' %}
+                                            <span class="badge bg-success">User marked this as correct</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">No user feedback yet</span>
+                                        {% endif %}
+                                        {% if scan.feedback_submitted_at %}
+                                            <div class="small text-muted mt-1">{{ scan.feedback_submitted_at.strftime('%Y-%m-%d %H:%M') }}</div>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        <input type="checkbox" name="approve" value="{{ scan.id }}" class="form-check-input approve-cb">
+                                    </td>
+                                    <td class="text-center">
+                                        <input type="checkbox" name="reject" value="{{ scan.id }}" class="form-check-input reject-cb">
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <button type="submit" class="btn btn-primary mt-3">Process Selected Reviews</button>
+            </form>
+        {% else %}
+            <p class="text-muted mb-0">There are no scans waiting for review.</p>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    document.querySelectorAll('.approve-cb').forEach(function (checkbox) {
+        checkbox.addEventListener('change', function () {
+            if (this.checked) {
+                const peer = this.closest('tr').querySelector('.reject-cb');
+                if (peer) peer.checked = false;
+            }
+        });
+    });
+    document.querySelectorAll('.reject-cb').forEach(function (checkbox) {
+        checkbox.addEventListener('change', function () {
+            if (this.checked) {
+                const peer = this.closest('tr').querySelector('.approve-cb');
+                if (peer) peer.checked = false;
+            }
+        });
+    });
+</script>
+{% endblock %}
